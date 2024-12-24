@@ -99,3 +99,7 @@ class Shell:
             self.process.terminate()
             self.process = None
             self._event_loop = None
+    
+    def get_working_directory(self):
+        if self.process:
+            return self.process.cwd

@@ -9,30 +9,20 @@ logger = setup_logging()
 class AutocompleteClient:
     """Handles autocomplete functionality with task management and cancellation."""
     
-    def __init__(self, model_name: str = "anthropic-sonnet"):
+    def __init__(self, terminal, model_name: str = "anthropic-sonnet"):
         """Initialize the autocomplete client."""
         logger.info(f"Initializing AutocompleteClient with model: {model_name}")
         self.ai_completer = AICompleter(model_name)
         self._current_task = None
         self._last_input = ""
         self._suggestion = ""
-        self._command_history: List[str] = []
         self._suggestion_callback = None
+        self.terminal = terminal
         
     @property
     def suggestion(self) -> str:
         """Get the current suggestion."""
         return self._suggestion
-        
-    def add_to_history(self, command: str) -> None:
-        """Add a command to the history."""
-        logger.debug(f"Adding command to history: {command}")
-        self._command_history.append(command)
-        
-    def clear_history(self) -> None:
-        """Clear the command history."""
-        logger.debug("Clearing command history")
-        self._command_history.clear()
         
     def cancel_pending(self) -> None:
         """Cancel any pending autocomplete task."""
@@ -52,7 +42,6 @@ class AutocompleteClient:
         """Get an autocomplete suggestion for the current input."""
         try:
             logger.debug(f"Getting suggestion for input: {current_input}")
-            logger.debug(f"Using command history: {' '.join(self._command_history[-3:])}")
             
             async for suggestion in self.ai_completer.get_completion(
                 current_input,
@@ -75,8 +64,10 @@ class AutocompleteClient:
             self._suggestion = ""
             return None
             
-    def check_for_autocomplete(self, current_input: str, lines: list[str]) -> None:
+    def check_for_autocomplete(self) -> None:
         """Check if input has changed and request autocomplete if needed."""
+        current_input = '> ' + self.terminal.current_input
+        lines = self.terminal.output_lines
         current_input = current_input.strip()
         
         if current_input == self._last_input:

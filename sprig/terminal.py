@@ -43,7 +43,7 @@ class TerminalEmulator(ScrollableContainer, can_focus=True):
         self.command_history = []
         self._last_update_time = time.time()
         self.shell = Shell()
-        self.autocomplete = AutocompleteClient(model_name)
+        self.autocomplete = AutocompleteClient(self, model_name)
         self.content = Static("")
         self._cursor_timer = None
         self._autocomplete_timer = None
@@ -123,7 +123,6 @@ class TerminalEmulator(ScrollableContainer, can_focus=True):
                 self.autocomplete.cancel_pending()
                 
                 self.command_history.append(self.current_input)
-                self.autocomplete.add_to_history(self.current_input)
                 self.history.append_string(self.current_input)
                 # Add command to output immediately for better responsiveness
                 self.output_lines.append(f"> {self.current_input}")
@@ -161,7 +160,7 @@ class TerminalEmulator(ScrollableContainer, can_focus=True):
 
         logger.debug(self.current_input, self.output_lines)
 
-        self.autocomplete.check_for_autocomplete(self.current_input, self.output_lines)
+        self.autocomplete.check_for_autocomplete()
         self.suggestion = self.autocomplete.suggestion
 
     def _blink_cursor(self) -> None:
@@ -205,7 +204,7 @@ class TerminalEmulator(ScrollableContainer, can_focus=True):
             content.append(line + "\n", style="white")
         
         # Add current input with prompt
-        content.append("> ", style="bold green")
+        content.append(self.shell.get_working_directory() + "> ", style="bold green")
         content.append(self._get_current_line_with_cursor())
         
         # Add suggestion if present

@@ -120,11 +120,14 @@ class AICompleter:
             return
 
     def _create_prompt(self, current_input: str, terminal_lines: List[str]) -> str:
+
+        terminal_body = "\n".join(terminal_lines)
+
         """Create a prompt for the AI model."""
         logger.debug(f"Using terminal contents: {terminal_lines}")
         
         return f"""Terminal history:
-{terminal_lines}
+{terminal_body}
 
 Current input: {current_input}
 
